@@ -8,6 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,6 +33,8 @@ public class MerchantServiceImpl implements MerchantService {
 
         String plainApiKey = "hk_live_" + UUID.randomUUID().toString().replace("-", "");
 
+        UUID merchantId = UUID.randomUUID();
+
         String apiKeyHash = BCrypt.hashpw(plainApiKey, BCrypt.gensalt());
 
         Merchant merchant = new Merchant();
@@ -39,6 +42,7 @@ public class MerchantServiceImpl implements MerchantService {
         merchant.setApiKeyHash(apiKeyHash);
         merchant.setName(request.name());
         merchant.setPhone(request.phone());
+        merchant.setMerchantId(merchantId);
 
         Merchant savedMerchant = merchantRepository.save(merchant);
 
@@ -47,6 +51,7 @@ public class MerchantServiceImpl implements MerchantService {
                 savedMerchant.getName(),
                 savedMerchant.getEmail(),
                 plainApiKey,
+                savedMerchant.getMerchantId(),
                 savedMerchant.getCreatedAt()
         );
     }
@@ -59,10 +64,29 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     public List<MerchantRegisterResponse> getMerchants() {
         List<Merchant> merchants= merchantRepository.findAll();
-        System.out.println(" total merchants" + merchants.size());
+
         return  merchants.stream()
                 .map(this::convertMerchantResponse)
                 .toList();
+    }
+
+    public Merchant isKeyValid(String merchantId, String apiKeyHeader) {
+
+        UUID merchantUuid = UUID.fromString(merchantId.trim());
+
+        Merchant merchant = merchantRepository
+                .findByMerchantId(merchantUuid)
+                .orElseThrow(() -> new IllegalArgumentException("Merchant not found"));
+        boolean valid = BCrypt.checkpw(
+                apiKeyHeader,
+                merchant.getApiKeyHash()
+        );
+
+        if (!valid) {
+            throw new IllegalArgumentException("Invalid API key");
+        }
+
+        return merchant;
     }
 
     private MerchantRegisterResponse convertMerchantResponse(Merchant merchant){
@@ -71,6 +95,7 @@ public class MerchantServiceImpl implements MerchantService {
                 merchant.getName(),
                 merchant.getEmail(),
                 "",
+                merchant.getMerchantId(),
                 merchant.getCreatedAt()
         );
     }

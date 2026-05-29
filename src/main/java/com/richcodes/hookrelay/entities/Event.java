@@ -16,7 +16,6 @@ public class Event {
     @Column(nullable = false)
     private String id;
 
-
     @ManyToOne()
     @JoinColumn(name = "merchant_id", nullable = false)
     private Merchant merchant;
@@ -86,4 +85,6 @@ public class Event {
     public void setPayload(String payload) {
         this.payload = payload;
     }
+
+
 }

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "merchants")
@@ -27,6 +28,9 @@ public class Merchant {
 
     @Column(nullable = false)
     private String phone;
+
+    @Column(nullable = false,unique = true)
+    private UUID merchantId;
 
     @Column(nullable = false,unique = true)
     private String apiKeyHash;
@@ -100,5 +104,13 @@ public class Merchant {
 
     public LocalDateTime getCreatedAt() {
         return created_at;
+    }
+
+    public UUID getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(UUID merchantId) {
+        this.merchantId = merchantId;
     }
 }

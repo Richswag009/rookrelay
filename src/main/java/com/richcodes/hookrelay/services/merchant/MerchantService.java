@@ -9,8 +9,14 @@ import java.util.List;
 public interface MerchantService {
 
     boolean existsByEmail(String email);
+
     MerchantRegisterResponse registerMerchant(MerchantRegisterRequest merchantRegisterRequest);
+
     List<MerchantRegisterResponse> getMerchantsByEmail(String email);
+
     List<MerchantRegisterResponse> getMerchants();
+
+    Merchant isKeyValid(String merchantId, String apiKeyHeader);
+
 
 }

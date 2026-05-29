@@ -25,6 +25,9 @@ public class Endpoint {
     @Column(nullable = false)
     private String url;
 
+    @Column()
+    private String description;
+
     @Column(nullable = false)
     private String secretHash;
 
@@ -46,10 +49,11 @@ public class Endpoint {
 
     public Endpoint() {}
 
-    public Endpoint(Merchant merchant, String url, String secretHash) {
+    public Endpoint(Merchant merchant, String url, String secretHash,String description) {
         this.merchant = merchant;
         this.url = url;
         this.secretHash = secretHash;
+        this.description = description;
     }
 
     public String getId() {
@@ -114,5 +118,13 @@ public class Endpoint {
 
     public void setUpdated_at(LocalDateTime updated_at) {
         this.updated_at = updated_at;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
