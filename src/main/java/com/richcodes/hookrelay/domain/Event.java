@@ -1,9 +1,12 @@
-package com.richcodes.hookrelay.entities;
+package com.richcodes.hookrelay.domain;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.richcodes.hookrelay.enums.EventStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -23,11 +26,13 @@ public class Event {
     @Column(nullable = false)
     private String type;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EventStatus status;
+    private EventStatus status = EventStatus.QUEUED;
 
-    @Column (nullable = false,columnDefinition = "TEXT")
-    private String payload;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column (nullable = false,columnDefinition = "jsonb")
+    private JsonNode payload;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -39,7 +44,7 @@ public class Event {
 
     public Event() {}
 
-    public Event(Merchant merchant, String type, EventStatus status, String payload) {
+    public Event(Merchant merchant, String type, EventStatus status, JsonNode payload) {
         this.merchant = merchant;
         this.type = type;
         this.status = status;
@@ -78,13 +83,15 @@ public class Event {
         this.status = status;
     }
 
-    public String getPayload() {
+    public JsonNode getPayload() {
         return payload;
     }
 
-    public void setPayload(String payload) {
+    public void setPayload(JsonNode payload) {
         this.payload = payload;
     }
 
-
+    public LocalDateTime getCreatedAt() {
+        return created_at;
+    }
 }

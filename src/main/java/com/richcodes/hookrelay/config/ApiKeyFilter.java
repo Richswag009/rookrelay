@@ -1,7 +1,7 @@
 package com.richcodes.hookrelay.config;
 
 
-import com.richcodes.hookrelay.entities.Merchant;
+import com.richcodes.hookrelay.domain.Merchant;
 import com.richcodes.hookrelay.services.merchant.MerchantService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

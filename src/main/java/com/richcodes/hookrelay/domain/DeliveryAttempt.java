@@ -1,8 +1,9 @@
-package com.richcodes.hookrelay.entities;
+package com.richcodes.hookrelay.domain;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -10,8 +11,8 @@ import java.util.Date;
 public class DeliveryAttempt {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @ManyToOne( fetch = FetchType.EAGER)
     @JoinColumn(name = "delivery_id")
@@ -25,7 +26,7 @@ public class DeliveryAttempt {
 
     @CreationTimestamp
     @Column(nullable = false)
-    private Date attemptedAt;
+    private LocalDateTime attemptedAt;
 
     @Column(nullable = false)
     private double duration_ms;
@@ -38,11 +39,11 @@ public class DeliveryAttempt {
         this.responseBody = responseBody;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -70,11 +71,11 @@ public class DeliveryAttempt {
         this.responseBody = responseBody;
     }
 
-    public Date getAttemptedAt() {
+    public LocalDateTime getAttemptedAt() {
         return attemptedAt;
     }
 
-    public void setAttemptedAt(Date attemptedAt) {
+    public void setAttemptedAt(LocalDateTime attemptedAt) {
         this.attemptedAt = attemptedAt;
     }
 

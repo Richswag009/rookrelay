@@ -1,5 +1,5 @@
 package com.richcodes.hookrelay.enums;
 
-public enum EventStatus {
+public enum DeliveryStatus {
     PENDING,QUEUED,SUCCESSFUL,FAILED
 }

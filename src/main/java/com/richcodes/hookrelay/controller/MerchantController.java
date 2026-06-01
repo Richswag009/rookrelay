@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/merchants")
+@RequestMapping("/api")
 public class MerchantController {
 
     private final MerchantService merchantService;
@@ -26,7 +26,7 @@ public class MerchantController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("")
+    @GetMapping("/merchants")
     public List<MerchantRegisterResponse> getMerchants(){
         return  merchantService.getMerchants();
     }

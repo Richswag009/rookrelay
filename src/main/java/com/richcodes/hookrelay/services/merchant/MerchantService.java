@@ -1,7 +1,7 @@
 package com.richcodes.hookrelay.services.merchant;
 
 import com.richcodes.hookrelay.dto.auth.MerchantRegisterRequest;
-import com.richcodes.hookrelay.entities.Merchant;
+import com.richcodes.hookrelay.domain.Merchant;
 import com.richcodes.hookrelay.response.MerchantRegisterResponse;
 
 import java.util.List;

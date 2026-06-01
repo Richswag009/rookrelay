@@ -1,14 +1,13 @@
 package com.richcodes.hookrelay.services.merchant;
 
 import com.richcodes.hookrelay.dto.auth.MerchantRegisterRequest;
-import com.richcodes.hookrelay.entities.Merchant;
+import com.richcodes.hookrelay.domain.Merchant;
 import com.richcodes.hookrelay.repository.MerchantRepository;
 import com.richcodes.hookrelay.response.MerchantRegisterResponse;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

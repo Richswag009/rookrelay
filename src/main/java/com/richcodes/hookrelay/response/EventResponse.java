@@ -1,17 +1,15 @@
 package com.richcodes.hookrelay.response;
 
 import com.richcodes.hookrelay.enums.EndpointStatus;
+import com.richcodes.hookrelay.enums.EventStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record EndpointResponse(
+public record EventResponse(
         String id,
-        String url,
-        String description,
-        List<String> subscribedEvents,
-        String secret,
-        EndpointStatus status,
+        String type,
+        EventStatus status,
         LocalDateTime createdAT
 ) {
 }

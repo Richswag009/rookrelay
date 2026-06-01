@@ -1,5 +1,6 @@
-package com.richcodes.hookrelay.entities;
+package com.richcodes.hookrelay.domain;
 
+import com.richcodes.hookrelay.enums.DeliveryStatus;
 import com.richcodes.hookrelay.enums.EventStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,8 +14,8 @@ import java.util.Date;
 public class Delivery {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @ManyToOne
     @JoinColumn(name = "event_id")
@@ -24,13 +25,14 @@ public class Delivery {
     @JoinColumn(name = "endpoint_id")
     private Endpoint endpoint;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EventStatus eventStatus;
+    private DeliveryStatus status = DeliveryStatus.QUEUED;
 
     @Column(nullable = false)
     private int attemptCount =0;
 
-    private Date nextRetryAt;
+    private LocalDateTime nextRetryAt;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -41,11 +43,11 @@ public class Delivery {
 
     public Delivery() {}
 
-    public Delivery(Long id, Event event, Endpoint endpoint, EventStatus eventStatus, int attemptCount, Date nextRetryAt) {
+    public Delivery(String id, Event event, Endpoint endpoint, DeliveryStatus deliveryStatus, int attemptCount, LocalDateTime nextRetryAt) {
         this.id = id;
         this.event = event;
         this.endpoint = endpoint;
-        this.eventStatus = eventStatus;
+        this.status = deliveryStatus;
         this.attemptCount = attemptCount;
         this.nextRetryAt = nextRetryAt;
     }
@@ -54,20 +56,20 @@ public class Delivery {
         this.event = event;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public EventStatus getEventStatus() {
-        return eventStatus;
+    public DeliveryStatus getDeliveryStatus() {
+        return status;
     }
 
-    public void setEventStatus(EventStatus eventStatus) {
-        this.eventStatus = eventStatus;
+    public void setDeliveryStatus(DeliveryStatus deliveryStatus) {
+        this.status = deliveryStatus;
     }
 
     public int getAttemptCount() {
@@ -78,11 +80,11 @@ public class Delivery {
         this.attemptCount = attemptCount;
     }
 
-    public Date getNextRetryAt() {
+    public LocalDateTime getNextRetryAt() {
         return nextRetryAt;
     }
 
-    public void setNextRetryAt(Date nextRetryAt) {
+    public void setNextRetryAt(LocalDateTime nextRetryAt) {
         this.nextRetryAt = nextRetryAt;
     }
 
@@ -103,4 +105,21 @@ public class Delivery {
     }
 
 
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
+    @Override
+    public String toString() {
+        return "Delivery{" +
+                "id='" + id + '\'' +
+                ", event=" + event +
+                ", endpoint=" + endpoint +
+                ", status=" + status +
+                ", attemptCount=" + attemptCount +
+                ", nextRetryAt=" + nextRetryAt +
+                ", created_at=" + created_at +
+                ", updated_at=" + updated_at +
+                '}';
+    }
 }

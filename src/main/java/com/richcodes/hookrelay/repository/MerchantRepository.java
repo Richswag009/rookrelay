@@ -1,6 +1,6 @@
 package com.richcodes.hookrelay.repository;
 
-import com.richcodes.hookrelay.entities.Merchant;
+import com.richcodes.hookrelay.domain.Merchant;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

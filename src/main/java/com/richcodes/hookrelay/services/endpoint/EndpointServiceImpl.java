@@ -1,21 +1,22 @@
 package com.richcodes.hookrelay.services.endpoint;
 
 import com.richcodes.hookrelay.dto.endpoint.EndpointRegisterRequest;
-import com.richcodes.hookrelay.entities.Endpoint;
-import com.richcodes.hookrelay.entities.Event;
-import com.richcodes.hookrelay.entities.Merchant;
+import com.richcodes.hookrelay.domain.Endpoint;
+import com.richcodes.hookrelay.domain.Merchant;
 import com.richcodes.hookrelay.enums.EndpointStatus;
 import com.richcodes.hookrelay.repository.EndpointRepository;
 import com.richcodes.hookrelay.response.EndpointResponse;
-import com.richcodes.hookrelay.response.MerchantRegisterResponse;
 import com.richcodes.hookrelay.utils.merchant.FindAuthenticatedUser;
 import com.richcodes.hookrelay.utils.secret.WebhookSecretGenerator;
-import io.micrometer.observation.Observation;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -51,7 +52,10 @@ public class EndpointServiceImpl implements EndpointService {
     @Override
     @Transactional
     public EndpointResponse getEndpoint(String endpointId) {
-        return null;
+
+       Endpoint endpoint =  findMerchantEndpointById(endpointId);
+
+       return convertMerchantResponse(endpoint,"");
     }
 
     @Override
@@ -64,6 +68,20 @@ public class EndpointServiceImpl implements EndpointService {
         return endpoints.stream()
                 .map( endpoint -> convertMerchantResponse(endpoint,""))
                 .toList();
+    }
+
+    @Override
+    public EndpointResponse updateEndpoint(String id, EndpointStatus endpointStatus) {
+        Endpoint endpoint =  findMerchantEndpointById(id);
+        endpoint.setStatus(endpointStatus);
+        endpointRepository.save(endpoint);
+        return convertMerchantResponse(endpoint,"");
+    }
+
+    @Override
+    public void deleteEndpoint(String id) {
+        Endpoint endpoint =  findMerchantEndpointById(id);
+        endpointRepository.delete(endpoint);
     }
 
     private EndpointResponse convertMerchantResponse(Endpoint endpoint,String secret) {
@@ -79,6 +97,19 @@ public class EndpointServiceImpl implements EndpointService {
                 endpoint.getStatus(),
                 endpoint.getCreated_at()
         );
+    }
+
+    private Endpoint findMerchantEndpointById(String id) {
+
+        Merchant merchant = findAuthenticatedUser.findAuthenticatedUser();
+        Optional<Endpoint> endpoint= endpointRepository.findByIdAndMerchant(merchant,id);
+
+        if(endpoint.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Endpoint not found");
+        }
+        return endpoint.get();
+
+
     }
 
 }

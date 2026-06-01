@@ -1,13 +1,14 @@
 package com.richcodes.hookrelay.controller;
 
 import com.richcodes.hookrelay.dto.endpoint.EndpointRegisterRequest;
+import com.richcodes.hookrelay.enums.EndpointStatus;
 import com.richcodes.hookrelay.response.EndpointResponse;
 import com.richcodes.hookrelay.services.endpoint.EndpointService;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 
 @RestController
@@ -33,4 +34,23 @@ public class EndpointController {
     public List<EndpointResponse> getEndpoints() {
         return endpointService.getEndpoints();
     }
+
+    @GetMapping("{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public EndpointResponse getEndpoint(@PathVariable String id ) {
+        return endpointService.getEndpoint(id);
+    }
+
+    @PutMapping("{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public EndpointResponse updateEndpoint(@PathVariable String id, EndpointStatus endpointStatus) {
+        return endpointService.updateEndpoint(id,endpointStatus);
+    }
+
+    @DeleteMapping("{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteEndpoint(@PathVariable String id) {
+        endpointService.deleteEndpoint(id);
+    }
+
 }
