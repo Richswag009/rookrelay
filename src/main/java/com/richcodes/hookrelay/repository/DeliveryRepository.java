@@ -37,4 +37,18 @@ public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
             DeliveryStatus status,
             LocalDateTime now
     );
+
+    @Query("""
+    SELECT d FROM Delivery d
+    LEFT JOIN FETCH d.deliveryAttempts
+    LEFT JOIN FETCH d.endpoint
+    WHERE d.event.id = :eventId
+    AND d.event.merchant = :merchant
+""")
+    List<Delivery> findDeliveriesByEventIdAndMerchant(
+            @Param("eventId") String eventId,
+            @Param("merchant") Merchant merchant
+    );
+
+
 }

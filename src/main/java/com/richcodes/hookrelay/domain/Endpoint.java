@@ -125,4 +125,19 @@ public class Endpoint {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    @Override
+    public String toString() {
+        return "Endpoint{" +
+                "id='" + id + '\'' +
+                ", merchant=" + merchant +
+                ", url='" + url + '\'' +
+                ", description='" + description + '\'' +
+                ", secretHash='" + secretHash + '\'' +
+                ", status=" + status +
+                ", subscribedEvents=" + subscribedEvents +
+                ", created_at=" + created_at +
+                ", updated_at=" + updated_at +
+                '}';
+    }
 }

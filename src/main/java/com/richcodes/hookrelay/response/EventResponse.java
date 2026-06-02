@@ -10,6 +10,7 @@ public record EventResponse(
         String id,
         String type,
         EventStatus status,
-        LocalDateTime createdAT
+        LocalDateTime createdAT,
+        List<DeliveryResponse> deliveries
 ) {
 }

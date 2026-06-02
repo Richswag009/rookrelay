@@ -1,24 +1,29 @@
 package com.richcodes.hookrelay.services.events;
 
-import com.richcodes.hookrelay.domain.Delivery;
-import com.richcodes.hookrelay.domain.Event;
+import com.richcodes.hookrelay.domain.*;
+import com.richcodes.hookrelay.dto.endpoint.StatusRequest;
 import com.richcodes.hookrelay.dto.events.EventRegisterRequest;
-import com.richcodes.hookrelay.domain.Endpoint;
-import com.richcodes.hookrelay.domain.Merchant;
 import com.richcodes.hookrelay.enums.DeliveryStatus;
 import com.richcodes.hookrelay.enums.EndpointStatus;
+import com.richcodes.hookrelay.enums.EventStatus;
 import com.richcodes.hookrelay.queue.RedisConfig;
 import com.richcodes.hookrelay.repository.DeliveryRepository;
 import com.richcodes.hookrelay.repository.EndpointRepository;
 import com.richcodes.hookrelay.repository.EventRepository;
+import com.richcodes.hookrelay.response.DeliveryAttemptResponse;
+import com.richcodes.hookrelay.response.DeliveryHistoryResponse;
 import com.richcodes.hookrelay.response.EventResponse;
 import com.richcodes.hookrelay.utils.merchant.FindAuthenticatedUser;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -74,27 +79,70 @@ public class EventServiceImpl implements EventService {
                 savedEvent.getId(),
                 savedEvent.getType(),
                 savedEvent.getStatus(),
-                savedEvent.getCreatedAt()
+                savedEvent.getCreatedAt(),
+                List.of()
         );
     }
 
     @Override
-    public List<EventResponse> getEvents() {
+    public List<EventResponse> getMerchantEvents(String status) {
         Merchant merchant = findAuthenticatedUser.findAuthenticatedUser();
         List<Event> endpoints = eventRepository.fetchByMerchant(merchant);
+
         return endpoints.stream().map( savedEvent -> new EventResponse(
                 savedEvent.getId(),
                 savedEvent.getType(),
                 savedEvent.getStatus(),
-                savedEvent.getCreatedAt()
+                savedEvent.getCreatedAt(),
+                List.of()
         )).toList();
     }
 
     @Override
-    public List<EventResponse> getEventsDeliveriesByEventId(String eventId) {
-        return List.of();
+    public EventResponse getEvent(String id) {
+        Event event = findMerchantEventById(id);
+        return new EventResponse(
+             event.getId(),
+             event.getType(),
+             event.getStatus(),
+             event.getCreatedAt(),
+                List.of()
+        );
     }
 
+    @Override
+    public EventResponse updateEvent(String id, StatusRequest statusRequest) {
+        Event event = findMerchantEventById(id);
+
+        EventStatus eventStatus = EventStatus.valueOf(statusRequest.status());
+        event.setStatus(eventStatus);
+
+        Event updatedEvent = eventRepository.save(event);
+
+        return new EventResponse(
+                updatedEvent.getId(),
+                updatedEvent.getType(),
+                updatedEvent.getStatus(),
+                updatedEvent.getCreatedAt(),
+                List.of()
+        );
+    }
+
+
+    @Override
+    public List<DeliveryHistoryResponse> getEventsDeliveriesByEventId(String eventId) {
+        Merchant merchant = findAuthenticatedUser.findAuthenticatedUser();
+        List<Delivery> delivery = deliveryRepository.findDeliveriesByEventIdAndMerchant(eventId, merchant);
+        return  delivery.stream().map(
+                savedDelivery -> new DeliveryHistoryResponse(
+                        savedDelivery.getEvent().getId(),
+                        savedDelivery.getEndpoint().getId(),
+                        savedDelivery.getDeliveryStatus(),
+                        savedDelivery.getAttemptCount(),
+                        convertDeliveryAttemptResponse(savedDelivery.getDeliveryAttempts(),savedDelivery)
+                )
+        ).toList();
+    }
 
     public List<Endpoint> getEndpointsByEvent(
             Merchant merchant,
@@ -110,6 +158,34 @@ public class EventServiceImpl implements EventService {
         redisTemplate.opsForList()
                 .leftPush(DELIVERY_QUEUE, delivery.getId().toString());
 
+    }
+
+
+    private Event findMerchantEventById(String id) {
+
+        Merchant merchant = findAuthenticatedUser.findAuthenticatedUser();
+        Optional<Event> event= eventRepository.findByIdAndMerchant(merchant,id);
+
+        if(event.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Endpoint not found");
+        }
+
+        return event.get();
+    }
+
+    private List<DeliveryAttemptResponse> convertDeliveryAttemptResponse(
+            List<DeliveryAttempt> attempts, Delivery delivery) {
+
+        return attempts.stream().map(attempt ->
+                new DeliveryAttemptResponse(
+                        attempt.getId(),
+                        attempt.getStatus().name(),
+                        attempt.getHttpStatus(),
+                        attempt.getResponseBody(),
+                        attempt.getAttemptedAt(),
+                        delivery.getNextRetryAt()
+                )
+        ).toList();
     }
 
 }

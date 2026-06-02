@@ -7,7 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity()
 @Table(name = "deliveries")
@@ -31,6 +33,9 @@ public class Delivery {
 
     @Column(nullable = false)
     private int attemptCount =0;
+
+    @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<DeliveryAttempt> deliveryAttempts = new ArrayList<>();
 
     private LocalDateTime nextRetryAt;
 
@@ -121,5 +126,13 @@ public class Delivery {
                 ", created_at=" + created_at +
                 ", updated_at=" + updated_at +
                 '}';
+    }
+
+    public List<DeliveryAttempt> getDeliveryAttempts() {
+        return deliveryAttempts;
+    }
+
+    public void setDeliveryAttempts(List<DeliveryAttempt> deliveryAttempts) {
+        this.deliveryAttempts = deliveryAttempts;
     }
 }

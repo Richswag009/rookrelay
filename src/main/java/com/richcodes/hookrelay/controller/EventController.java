@@ -1,10 +1,10 @@
 package com.richcodes.hookrelay.controller;
 
-import com.richcodes.hookrelay.dto.endpoint.EndpointRegisterRequest;
+import com.richcodes.hookrelay.domain.Delivery;
+import com.richcodes.hookrelay.dto.endpoint.StatusRequest;
 import com.richcodes.hookrelay.dto.events.EventRegisterRequest;
-import com.richcodes.hookrelay.response.EndpointResponse;
+import com.richcodes.hookrelay.response.DeliveryHistoryResponse;
 import com.richcodes.hookrelay.response.EventResponse;
-import com.richcodes.hookrelay.services.endpoint.EndpointService;
 import com.richcodes.hookrelay.services.events.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,13 +31,30 @@ public class EventController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<EventResponse> getEvents() {
-        return eventService.getEvents();
+    public List<EventResponse> getEvents(
+            @RequestParam(required = false) String status) {
+        return eventService.getMerchantEvents(status);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("{id}")
+    public EventResponse getEventById(
+            @PathVariable String id){
+        return eventService.getEvent(id);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PutMapping("{id}")
+    public EventResponse updateEventStatusById(
+            @PathVariable String id,
+            @RequestBody StatusRequest statusRequest){
+
+        return eventService.updateEvent(id, statusRequest);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("{id}/deliveries")
-    public List<EventResponse> getEventsDeliveries(@PathVariable String id){
+    public List<DeliveryHistoryResponse> getEventsDeliveries(@PathVariable String id){
         return eventService.getEventsDeliveriesByEventId(id);
     }
 }

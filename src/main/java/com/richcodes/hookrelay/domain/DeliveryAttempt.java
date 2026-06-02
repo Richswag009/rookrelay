@@ -35,6 +35,9 @@ public class DeliveryAttempt {
     @Column(nullable = true)
     private double duration_ms;
 
+    @Column(nullable = false)
+    private int attemptNumber;
+
     public DeliveryAttempt() {}
 
     public DeliveryAttempt(Delivery delivery, String httpStatus, String responseBody) {
@@ -89,5 +92,21 @@ public class DeliveryAttempt {
 
     public void setDuration_ms(double duration_ms) {
         this.duration_ms = duration_ms;
+    }
+
+    public int getAttemptNumber() {
+        return attemptNumber;
+    }
+
+    public void setAttemptNumber(int attemptNumber) {
+        this.attemptNumber = attemptNumber;
+    }
+
+    public DeliveryStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(DeliveryStatus status) {
+        this.status = status;
     }
 }

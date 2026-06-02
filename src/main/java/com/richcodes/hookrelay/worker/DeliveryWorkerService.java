@@ -53,6 +53,7 @@ public class DeliveryWorkerService {
         try{
             String deliveryId = String.valueOf(redisTemplate.opsForList()
                         .rightPop(DELIVERY_QUEUE,0));
+            if (deliveryId == null) return;
             executor.submit(() -> processDelivery(deliveryId));
 
         }catch (Exception e){
@@ -93,14 +94,12 @@ public class DeliveryWorkerService {
         headers.set("X-API-KEY", "dsgsg");
 
         HttpEntity<JsonNode> request = new HttpEntity<>(payload, headers);
-
-
         ResponseEntity<String> response = null;
-        String url2 = "https://webhook.site/a5884ad2-e54f-4b85-b3e0-909b7a6bfc61";
+
         try {
             response =
                     restTemplate.postForEntity(
-                            url2,
+                            webhookUrl,
                             request,
                             String.class
                     );
@@ -115,13 +114,15 @@ public class DeliveryWorkerService {
             return response.getBody();
         }catch (Exception e) {
             System.out.println("Webhook failed: " + e.getMessage());
-            return null; // or return a failure object
+            createDeliveryAttempt(delivery, response);
+            return null;
         }
 
     }
 
     private void updateDeliveryStatus(Delivery delivery, ResponseEntity<String> response) {
         delivery.setDeliveryStatus(DeliveryStatus.SUCCESSFUL);
+
         deliveryRepository.save(delivery);
 
         DeliveryAttempt attempt = new DeliveryAttempt();
@@ -129,10 +130,12 @@ public class DeliveryWorkerService {
         attempt.setHttpStatus(response.getStatusCode().toString());
         attempt.setResponseBody(response.getBody());
         attempt.setAttemptedAt(LocalDateTime.now());
+        attempt.setStatus(DeliveryStatus.SUCCESSFUL);
         deliveryAttemptRepository.save(attempt);
     }
 
     private void createDeliveryAttempt(Delivery delivery,ResponseEntity<String> response ) {
+
 
         if (delivery.getAttemptCount() >= 6) {
             delivery.setDeliveryStatus(DeliveryStatus.DEAD_LETTER);
@@ -150,6 +153,7 @@ public class DeliveryWorkerService {
         attempt.setHttpStatus(response.getStatusCode().toString());
         attempt.setResponseBody(response.getBody());
         attempt.setAttemptedAt(LocalDateTime.now());
+        attempt.setAttemptNumber(delivery.getAttemptCount());
         deliveryAttemptRepository.save(attempt);
     }
 

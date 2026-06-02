@@ -1,5 +1,6 @@
 package com.richcodes.hookrelay.repository;
 
+import com.richcodes.hookrelay.domain.Endpoint;
 import com.richcodes.hookrelay.domain.Event;
 import com.richcodes.hookrelay.domain.Merchant;
 import com.richcodes.hookrelay.response.EventResponse;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, String> {
 
@@ -16,5 +18,16 @@ public interface EventRepository extends JpaRepository<Event, String> {
     WHERE e.merchant = :merchant
 """)
     List<Event> fetchByMerchant(@Param("merchant") Merchant merchant);
+
+    @Query("""
+    SELECT e
+    FROM Event e
+    WHERE e.merchant = :merchant
+    AND e.id = :id
+""")
+    Optional<Event> findByIdAndMerchant(
+            @Param("merchant") Merchant merchant,
+            @Param("id") String id
+    );
 
 }

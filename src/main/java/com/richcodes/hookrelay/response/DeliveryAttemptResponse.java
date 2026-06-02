@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 
 public record DeliveryAttemptResponse(
         String id,
+        String status,
         String httpStatus,
         String responseBody,
         LocalDateTime attemptedAt,

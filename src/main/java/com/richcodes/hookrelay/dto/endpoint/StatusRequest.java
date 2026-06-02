@@ -5,6 +5,6 @@ import com.richcodes.hookrelay.enums.EndpointStatus;
 
 public record StatusRequest(
         @JsonProperty("status")
-        EndpointStatus status
+        String status
 ) {
 }

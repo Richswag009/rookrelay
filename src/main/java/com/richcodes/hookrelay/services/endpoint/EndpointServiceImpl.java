@@ -26,13 +26,12 @@ import java.util.UUID;
 public class EndpointServiceImpl implements EndpointService {
     private final EndpointRepository endpointRepository;
     private final FindAuthenticatedUser findAuthenticatedUser;
-    private final WebhookSecretGenerator webhookSecretGenerator;
 
     public EndpointServiceImpl(EndpointRepository endpointRepository, FindAuthenticatedUser findAuthenticatedUser, WebhookSecretGenerator webhookSecretGenerator) {
         this.endpointRepository = endpointRepository;
         this.findAuthenticatedUser = findAuthenticatedUser;
-        this.webhookSecretGenerator = webhookSecretGenerator;
     }
+
     @Override
     public EndpointResponse createEndpoint(EndpointRegisterRequest request) {
 
@@ -94,13 +93,12 @@ public class EndpointServiceImpl implements EndpointService {
     @Override
     @Transactional
     public void deleteEndpoint(String id) {
-        System.out.println("Delete endpoint");
         Endpoint endpoint =  findMerchantEndpointById(id);
         if (EndpointStatus.ACTIVE.equals(endpoint.getStatus())) {
             throw new IllegalArgumentException("can't delete an active endpoint");
         }
         endpointRepository.delete(endpoint);
-        System.out.println("Deleted endpoint");
+
     }
 
     private EndpointResponse convertMerchantResponse(Endpoint endpoint,String secret) {
@@ -110,7 +108,7 @@ public class EndpointServiceImpl implements EndpointService {
                 endpoint.getUrl(),
                 endpoint.getDescription(),
                 endpoint.getSubscribedEvents()
-                        .stream()// IMPORTANT FIX
+                        .stream()
                         .toList(),
                 secret,
                 endpoint.getStatus(),
@@ -126,9 +124,8 @@ public class EndpointServiceImpl implements EndpointService {
         if(endpoint.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Endpoint not found");
         }
+
         return endpoint.get();
-
-
     }
 
 }

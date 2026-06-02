@@ -66,7 +66,8 @@ public class DeliveryServiceImpl implements DeliveryService {
                         delivery.getEvent().getId(),
                         delivery.getEvent().getType(),
                         delivery.getEvent().getStatus(),
-                        delivery.getEvent().getCreatedAt()
+                        delivery.getEvent().getCreatedAt(),
+                        List.of()
                 ),
                 new EndpointResponse(
                         delivery.getEndpoint().getId(),
