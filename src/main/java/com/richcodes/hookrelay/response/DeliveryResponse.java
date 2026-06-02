@@ -10,7 +10,7 @@ public record DeliveryResponse(
         DeliveryStatus status,
         int attemptCount,
         LocalDateTime createdAt,
-        Date nextRetryAt,
+        LocalDateTime nextRetryAt,
 
         EventResponse event,
         EndpointResponse endpoint

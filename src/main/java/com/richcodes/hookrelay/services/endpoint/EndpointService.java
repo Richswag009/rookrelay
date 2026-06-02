@@ -1,6 +1,7 @@
 package com.richcodes.hookrelay.services.endpoint;
 
 import com.richcodes.hookrelay.dto.endpoint.EndpointRegisterRequest;
+import com.richcodes.hookrelay.dto.endpoint.StatusRequest;
 import com.richcodes.hookrelay.enums.EndpointStatus;
 import com.richcodes.hookrelay.repository.MerchantRepository;
 import com.richcodes.hookrelay.response.EndpointResponse;
@@ -17,7 +18,7 @@ public interface EndpointService {
 
     List<EndpointResponse> getEndpoints();
 
-    EndpointResponse updateEndpoint(String id, EndpointStatus status);
+    EndpointResponse updateEndpoint(String id, StatusRequest status);
 
     void deleteEndpoint(String id);
 }

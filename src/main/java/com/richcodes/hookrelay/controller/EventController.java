@@ -34,4 +34,10 @@ public class EventController {
     public List<EventResponse> getEvents() {
         return eventService.getEvents();
     }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("{id}/deliveries")
+    public List<EventResponse> getEventsDeliveries(@PathVariable String id){
+        return eventService.getEventsDeliveriesByEventId(id);
+    }
 }

@@ -8,4 +8,5 @@ import java.util.List;
 public interface EventService {
     EventResponse createEvent(EventRegisterRequest request);
     List<EventResponse> getEvents();
+    List<EventResponse> getEventsDeliveriesByEventId(String eventId);
 }

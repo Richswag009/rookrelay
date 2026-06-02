@@ -1,13 +1,16 @@
 package com.richcodes.hookrelay.services.endpoint;
 
+import com.richcodes.hookrelay.domain.Event;
 import com.richcodes.hookrelay.dto.endpoint.EndpointRegisterRequest;
 import com.richcodes.hookrelay.domain.Endpoint;
 import com.richcodes.hookrelay.domain.Merchant;
+import com.richcodes.hookrelay.dto.endpoint.StatusRequest;
 import com.richcodes.hookrelay.enums.EndpointStatus;
 import com.richcodes.hookrelay.repository.EndpointRepository;
 import com.richcodes.hookrelay.response.EndpointResponse;
 import com.richcodes.hookrelay.utils.merchant.FindAuthenticatedUser;
 import com.richcodes.hookrelay.utils.secret.WebhookSecretGenerator;
+import jakarta.transaction.Status;
 import jakarta.transaction.Transactional;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -71,17 +74,33 @@ public class EndpointServiceImpl implements EndpointService {
     }
 
     @Override
-    public EndpointResponse updateEndpoint(String id, EndpointStatus endpointStatus) {
+    public EndpointResponse updateEndpoint(String id, StatusRequest endpointStatus) {
         Endpoint endpoint =  findMerchantEndpointById(id);
-        endpoint.setStatus(endpointStatus);
-        endpointRepository.save(endpoint);
-        return convertMerchantResponse(endpoint,"");
+
+        if (endpointStatus.status() == null) {
+            throw new IllegalArgumentException("status is required");
+        }
+
+        EndpointStatus status = EndpointStatus.valueOf(
+                String.valueOf(endpointStatus.status())
+        );
+
+        endpoint.setStatus(status);
+        Endpoint updateTodo =  endpointRepository.save(endpoint);
+
+        return convertMerchantResponse(updateTodo,"");
     }
 
     @Override
+    @Transactional
     public void deleteEndpoint(String id) {
+        System.out.println("Delete endpoint");
         Endpoint endpoint =  findMerchantEndpointById(id);
+        if (EndpointStatus.ACTIVE.equals(endpoint.getStatus())) {
+            throw new IllegalArgumentException("can't delete an active endpoint");
+        }
         endpointRepository.delete(endpoint);
+        System.out.println("Deleted endpoint");
     }
 
     private EndpointResponse convertMerchantResponse(Endpoint endpoint,String secret) {
@@ -91,7 +110,7 @@ public class EndpointServiceImpl implements EndpointService {
                 endpoint.getUrl(),
                 endpoint.getDescription(),
                 endpoint.getSubscribedEvents()
-                        .stream()
+                        .stream()// IMPORTANT FIX
                         .toList(),
                 secret,
                 endpoint.getStatus(),

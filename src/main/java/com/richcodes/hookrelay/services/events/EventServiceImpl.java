@@ -90,6 +90,11 @@ public class EventServiceImpl implements EventService {
         )).toList();
     }
 
+    @Override
+    public List<EventResponse> getEventsDeliveriesByEventId(String eventId) {
+        return List.of();
+    }
+
 
     public List<Endpoint> getEndpointsByEvent(
             Merchant merchant,

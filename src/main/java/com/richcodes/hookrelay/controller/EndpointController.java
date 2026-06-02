@@ -1,6 +1,7 @@
 package com.richcodes.hookrelay.controller;
 
 import com.richcodes.hookrelay.dto.endpoint.EndpointRegisterRequest;
+import com.richcodes.hookrelay.dto.endpoint.StatusRequest;
 import com.richcodes.hookrelay.enums.EndpointStatus;
 import com.richcodes.hookrelay.response.EndpointResponse;
 import com.richcodes.hookrelay.services.endpoint.EndpointService;
@@ -42,13 +43,13 @@ public class EndpointController {
     }
 
     @PutMapping("{id}")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public EndpointResponse updateEndpoint(@PathVariable String id, EndpointStatus endpointStatus) {
+    @ResponseStatus(HttpStatus.OK)
+    public EndpointResponse updateEndpoint(@PathVariable String id,@RequestBody StatusRequest endpointStatus) {
         return endpointService.updateEndpoint(id,endpointStatus);
     }
 
     @DeleteMapping("{id}")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteEndpoint(@PathVariable String id) {
         endpointService.deleteEndpoint(id);
     }

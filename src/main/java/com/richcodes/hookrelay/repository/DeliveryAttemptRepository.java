@@ -1,10 +1,8 @@
 package com.richcodes.hookrelay.repository;
 
 import com.richcodes.hookrelay.domain.Delivery;
-import com.richcodes.hookrelay.domain.Endpoint;
-import com.richcodes.hookrelay.domain.Merchant;
+import com.richcodes.hookrelay.domain.DeliveryAttempt;
 import com.richcodes.hookrelay.enums.DeliveryStatus;
-import com.richcodes.hookrelay.enums.EndpointStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
+public interface DeliveryAttemptRepository extends JpaRepository<DeliveryAttempt,Long> {
 
     @Query("""
     SELECT d FROM Delivery d
@@ -33,8 +31,5 @@ public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
 """)
     List<Delivery> findAllWithRelations();
 
-    List<Delivery> findByEventStatusAndNextRetryAtBefore(
-            DeliveryStatus status,
-            LocalDateTime now
-    );
+
 }

@@ -1,5 +1,6 @@
 package com.richcodes.hookrelay.domain;
 
+import com.richcodes.hookrelay.enums.DeliveryStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -21,6 +22,9 @@ public class DeliveryAttempt {
     @Column(nullable = false)
     private String httpStatus;
 
+    @Enumerated(EnumType.STRING)
+    private DeliveryStatus status;
+
     @Column(nullable = false)
     private String responseBody;
 
@@ -28,7 +32,7 @@ public class DeliveryAttempt {
     @Column(nullable = false)
     private LocalDateTime attemptedAt;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private double duration_ms;
 
     public DeliveryAttempt() {}
