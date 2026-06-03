@@ -33,7 +33,7 @@ public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
 """)
     List<Delivery> findAllWithRelations();
 
-    List<Delivery> findByEventStatusAndNextRetryAtBefore(
+    List<Delivery> findByStatusAndNextRetryAtBefore(
             DeliveryStatus status,
             LocalDateTime now
     );

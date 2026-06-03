@@ -77,7 +77,7 @@ public class DeliveryWorkerService {
 
     @Scheduled(fixedRate = 30000) // runs every 30 seconds
     public void retryFailedDeliveries() {
-        List<Delivery> retryable = deliveryRepository.findByEventStatusAndNextRetryAtBefore(
+        List<Delivery> retryable = deliveryRepository.findByStatusAndNextRetryAtBefore(
                         DeliveryStatus.FAILED,
                         LocalDateTime.now()
                 );
