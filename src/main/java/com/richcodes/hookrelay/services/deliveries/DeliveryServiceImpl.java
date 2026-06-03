@@ -45,11 +45,12 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     public String processDelivery() {
         String deliveryIds =  redisTemplate.opsForList().index(DELIVERY_QUEUE, 0);
+
         Optional<Delivery>   delivery = Optional.of(deliveryRepository.findByIdWithDetails(deliveryIds).get());
+
         JsonNode payload = delivery.get().getEvent().getPayload();
         String url = delivery.get().getEndpoint().getUrl();
 
-        System.out.println(payload.toString());
         return deliveryWorkerService.sendWebhook(url, payload,delivery.get());
     }
 

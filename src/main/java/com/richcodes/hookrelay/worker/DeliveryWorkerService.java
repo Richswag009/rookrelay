@@ -7,6 +7,7 @@ import com.richcodes.hookrelay.domain.DeliveryAttempt;
 import com.richcodes.hookrelay.enums.DeliveryStatus;
 import com.richcodes.hookrelay.repository.DeliveryAttemptRepository;
 import com.richcodes.hookrelay.repository.DeliveryRepository;
+import com.richcodes.hookrelay.signing.WebhookSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
@@ -14,11 +15,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiFunction;
 
 
 @Service
@@ -30,7 +34,6 @@ public class DeliveryWorkerService {
     private DeliveryRepository deliveryRepository;
     @Autowired
     private DeliveryAttemptRepository deliveryAttemptRepository;
-
 
     private final RetryPolicy retryPolicy;
 
@@ -51,8 +54,7 @@ public class DeliveryWorkerService {
     @Scheduled(fixedRate = 10000)
     public void delivery() {
         try{
-            String deliveryId = String.valueOf(redisTemplate.opsForList()
-                        .rightPop(DELIVERY_QUEUE,0));
+            String deliveryId = redisTemplate.opsForList().rightPop(DELIVERY_QUEUE);
             if (deliveryId == null) return;
             executor.submit(() -> processDelivery(deliveryId));
 
@@ -91,7 +93,24 @@ public class DeliveryWorkerService {
     public String sendWebhook(String webhookUrl, JsonNode payload,Delivery delivery) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-API-KEY", "dsgsg");
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+
+        String signature = null;
+        try {
+            signature = WebhookSignature.generateHMACSignature(
+                    delivery.getEndpoint().getSecretHash(),
+                    timestamp,
+                    payload.toString()
+            );
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException(e);
+        }
+
+        headers.set("X-Webhook-Signature", signature);
+        headers.set("X-Webhook-Timestamp", timestamp);
+        headers.set("X-Webhook-ID", delivery.getId());
 
         HttpEntity<JsonNode> request = new HttpEntity<>(payload, headers);
         ResponseEntity<String> response = null;
