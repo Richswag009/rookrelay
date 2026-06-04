@@ -4,7 +4,7 @@ A production-grade webhook delivery service that guarantees at-least-once delive
 of events to registered endpoints, with automatic retries, HMAC-SHA256 signature
 verification, and a dead letter queue for failed deliveries.
 
-Built in Java 21 with Spring Boot, PostgreSQL, and Redis.
+Built in Java 25 with Spring Boot, PostgreSQL, Docker and Redis.
 
 ---
 
@@ -78,7 +78,7 @@ POST to merchant endpoint URL
 ## Tech Stack
 
 ```
-Java 21             ← virtual threads for concurrent delivery
+Java 25             ← virtual threads for concurrent delivery
 Spring Boot 3       ← REST API and background worker
 PostgreSQL          ← persistent storage for all records
 Redis               ← job queue for delivery workers
@@ -93,7 +93,7 @@ H2 (mock merchant)  ← in-memory DB for mock merchant server
 ### Prerequisites
 
 ```
-Java 21+
+Java 25+
 Docker Desktop
 Maven
 ```
