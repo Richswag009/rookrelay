@@ -34,7 +34,7 @@ The merchant's server will go down. HookRelay will not lose events.
 - Merchant registration with API key authentication
 - Endpoint registration with secret-based signature verification
 - Event ingestion with immediate 202 response
-- Background delivery worker using Java 21 virtual threads
+- Background delivery worker using Java 25 virtual threads
 - HMAC-SHA256 payload signing on every delivery
 - Exponential backoff retry schedule across 6 attempts
 - Dead letter queue for permanently failed deliveries
@@ -101,8 +101,8 @@ Maven
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Richswag009/rookrelay.git
-cd rookrelay
+git clone https://github.com/Richswag009/hookrelay.git
+cd hookrelay
 ```
 
 ### 2. Start PostgreSQL and Redis
@@ -325,7 +325,47 @@ No authentication required.
 
 ---
 
-## Retry Schedule
+---
+
+## Retry Strategy
+
+HookRelay uses two levels of retry to handle different failure scenarios.
+
+### Level 1 — Immediate Retry (RetryPolicy)
+
+Handles transient network errors within a single delivery attempt.
+Retries up to 3 times with exponential backoff before giving up on that attempt.
+
+```
+Request fails (network timeout, 429, 500, 503, 504)
+    ↓
+Wait 37 seconds
+    ↓
+Retry attempt 2 → wait 74 seconds on failure
+    ↓
+Retry attempt 3 → give up, mark delivery as FAILED
+```
+
+Errors that are retried immediately:
+```
+ResourceAccessException  ← network timeout or connection refused
+429 Too Many Requests    ← rate limited
+500 Internal Server Error
+503 Service Unavailable
+504 Gateway Timeout
+```
+
+Errors that are NOT retried (permanent failures):
+```
+400 Bad Request          ← wrong payload, retrying won't help
+401 Unauthorized         ← wrong credentials
+403 Forbidden            ← not allowed
+```
+
+### Level 2 — Scheduled Retry (Delivery Worker)
+
+Handles extended merchant outages. When Level 1 exhausts all attempts,
+the delivery is marked FAILED and scheduled for a later retry.
 
 ```
 Attempt 1 fails → wait 30 seconds
@@ -335,6 +375,10 @@ Attempt 4 fails → wait 2 hours
 Attempt 5 fails → wait 5 hours
 Attempt 6 fails → move to dead letter queue
 ```
+
+A scheduler runs every 30 seconds and requeues any FAILED deliveries
+whose `nextRetryAt` time has passed.
+
 
 ---
 
@@ -440,13 +484,18 @@ hookrelay/
 │       ├── WebhookRepository.java
 │       └── FailureSimulator.java
 └── src/main/java/com/richcodes/hookrelay/
-    ├── api/                           ← REST controllers
+    ├── controller/                    ← REST controllers
     ├── domain/                        ← entities
+    ├── dto/                           ← dtos
+    ├── enums/                         ← delvery and event status enums
+    ├── exceptions/                    ← custom exceptions handles
+    ├── queue/                         ← redis config
     ├── worker/                        ← delivery worker + retry policy
     ├── signing/                       ← HMAC signature generation
     ├── config/                        ← API key filter, app config
     ├── repository/                    ← JPA repositories
     └── services/                      ← business logic
+   
 ```
 
 ---
@@ -455,7 +504,7 @@ hookrelay/
 
 - API key authentication for machine-to-machine systems
 - At-least-once delivery guarantee with Redis job queue
-- Fault-tolerant background workers with Java 21 virtual threads
+- Fault-tolerant background workers with Java 25 virtual threads
 - HMAC-SHA256 webhook signing and replay attack prevention
 - Exponential backoff retry with dead letter queue recovery
 - Store-before-deliver pattern for zero event loss

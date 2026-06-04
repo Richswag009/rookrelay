@@ -15,7 +15,7 @@ public class WebhookSecretGenerator {
         byte[] bytes = new byte[32]; // 256-bit secret
         secureRandom.nextBytes(bytes);
 
-        return "rookrelay" + Base64.getUrlEncoder()
+        return "hookrelay_" + Base64.getUrlEncoder()
                 .withoutPadding()
                 .encodeToString(bytes);
     }
