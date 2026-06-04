@@ -2,6 +2,7 @@ package com.richcodes.hookrelay.repository;
 
 import com.richcodes.hookrelay.domain.Delivery;
 import com.richcodes.hookrelay.domain.Endpoint;
+import com.richcodes.hookrelay.domain.Event;
 import com.richcodes.hookrelay.domain.Merchant;
 import com.richcodes.hookrelay.enums.DeliveryStatus;
 import com.richcodes.hookrelay.enums.EndpointStatus;
@@ -38,6 +39,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
             LocalDateTime now
     );
 
+
+
     @Query("""
     SELECT d FROM Delivery d
     LEFT JOIN FETCH d.deliveryAttempts
@@ -49,6 +52,29 @@ public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
             @Param("eventId") String eventId,
             @Param("merchant") Merchant merchant
     );
+
+    @Query("""
+    SELECT d FROM Delivery d
+    JOIN FETCH d.event
+    JOIN FETCH d.endpoint e
+    LEFT JOIN FETCH e.subscribedEvents
+    WHERE d.status  = :status
+""")
+    List<Delivery> findAllDeadLettersWithRelations(DeliveryStatus status);
+
+    @Query("""
+    SELECT d FROM Delivery d
+    JOIN FETCH d.event
+    JOIN FETCH d.endpoint e
+    LEFT JOIN FETCH e.subscribedEvents
+    WHERE d.id = :id AND
+    d.status  = :status
+    
+""")
+    Delivery findDeadLettersByIdWithRelations(DeliveryStatus status,String id);
+
+    List<Delivery> findByEvent(Event event);
+
 
 
 }

@@ -9,6 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "events")
@@ -33,6 +35,9 @@ public class Event {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column (nullable = false,columnDefinition = "jsonb")
     private JsonNode payload;
+
+    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
+    private List<Delivery> deliveries = new ArrayList<>();
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -93,5 +98,13 @@ public class Event {
 
     public LocalDateTime getCreatedAt() {
         return created_at;
+    }
+
+    public List<Delivery> getDeliveries() {
+        return deliveries;
+    }
+
+    public void setDeliveries(List<Delivery> deliveries) {
+        this.deliveries = deliveries;
     }
 }

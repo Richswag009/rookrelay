@@ -19,10 +19,6 @@ target/
 *.iml
 *.ipr
 
-target
-.git
-.DS_Store
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -35,12 +31,3 @@ build/
 
 ### VS Code ###
 .vscode/
-
-.env
-
-
-# Mock merchant
-mock-merchant/target/
-mock-merchant/.mvn/
-mock-merchant/src/main/resources/application.properties
-

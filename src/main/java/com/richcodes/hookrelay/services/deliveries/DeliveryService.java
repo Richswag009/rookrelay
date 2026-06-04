@@ -13,6 +13,14 @@ public interface DeliveryService {
 
     @Transactional(readOnly = true)
     List<DeliveryResponse> getDeliveries();
+
     Optional<Delivery> getDelivery(String id);
+
     String processDelivery();
+
+    List<DeliveryResponse> getDeadDeliveries();
+
+    void replayDelivery(String id);
+
+    void dismissDeliveryById(String id);
 }

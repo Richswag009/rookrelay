@@ -4,9 +4,12 @@ package com.richcodes.hookrelay.worker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.richcodes.hookrelay.domain.Delivery;
 import com.richcodes.hookrelay.domain.DeliveryAttempt;
+import com.richcodes.hookrelay.domain.Event;
 import com.richcodes.hookrelay.enums.DeliveryStatus;
+import com.richcodes.hookrelay.enums.EventStatus;
 import com.richcodes.hookrelay.repository.DeliveryAttemptRepository;
 import com.richcodes.hookrelay.repository.DeliveryRepository;
+import com.richcodes.hookrelay.repository.EventRepository;
 import com.richcodes.hookrelay.signing.WebhookSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,6 +38,8 @@ public class DeliveryWorkerService {
     @Autowired
     private DeliveryAttemptRepository deliveryAttemptRepository;
 
+    @Autowired
+    private EventRepository eventRepository;
     private final RetryPolicy retryPolicy;
 
     @Autowired
@@ -102,9 +107,7 @@ public class DeliveryWorkerService {
                     timestamp,
                     payload.toString()
             );
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new RuntimeException(e);
         }
 
@@ -125,6 +128,7 @@ public class DeliveryWorkerService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 System.out.println("SUCCESS: " + response.getStatusCode());
                 updateDeliveryStatus(delivery,response);
+                updateEventStatus(delivery);
                 return response.getBody();
             }
 
@@ -141,7 +145,7 @@ public class DeliveryWorkerService {
 
     private void updateDeliveryStatus(Delivery delivery, ResponseEntity<String> response) {
         delivery.setDeliveryStatus(DeliveryStatus.SUCCESSFUL);
-
+        delivery.setAttemptCount(delivery.getAttemptCount() + 1);
         deliveryRepository.save(delivery);
 
         DeliveryAttempt attempt = new DeliveryAttempt();
@@ -174,6 +178,27 @@ public class DeliveryWorkerService {
         attempt.setAttemptedAt(LocalDateTime.now());
         attempt.setAttemptNumber(delivery.getAttemptCount());
         deliveryAttemptRepository.save(attempt);
+    }
+
+    private void updateEventStatus(Delivery delivery) {
+        Event event = delivery.getEvent();
+        List<Delivery> allDeliveries = deliveryRepository
+                .findByEvent(event);
+
+        boolean allSuccessful = allDeliveries.stream()
+                .allMatch(d -> d.getDeliveryStatus() == DeliveryStatus.SUCCESSFUL);
+
+        boolean anyDeadLetter = allDeliveries.stream()
+                .anyMatch(
+                        d -> d.getDeliveryStatus() == DeliveryStatus.DEAD_LETTER);
+
+        if (allSuccessful) {
+            event.setStatus(EventStatus.DELIVERED);
+        } else if (anyDeadLetter) {
+            event.setStatus(EventStatus.FAILED);
+        }
+
+        eventRepository.save(event);
     }
 
     private LocalDateTime calculateNextRetry(int attemptCount) {

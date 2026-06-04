@@ -22,6 +22,7 @@ public interface EventRepository extends JpaRepository<Event, String> {
     @Query("""
     SELECT e
     FROM Event e
+    LEFT JOIN FETCH e.deliveries
     WHERE e.merchant = :merchant
     AND e.id = :id
 """)

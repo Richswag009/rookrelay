@@ -3,6 +3,7 @@ package com.richcodes.hookrelay.services.deliveries;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.richcodes.hookrelay.domain.Delivery;
+import com.richcodes.hookrelay.enums.DeliveryStatus;
 import com.richcodes.hookrelay.repository.DeliveryRepository;
 import com.richcodes.hookrelay.response.DeliveryResponse;
 import com.richcodes.hookrelay.response.EndpointResponse;
@@ -53,6 +54,46 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         return deliveryWorkerService.sendWebhook(url, payload,delivery.get());
     }
+
+    @Override
+    public List<DeliveryResponse> getDeadDeliveries() {
+        List<Delivery> deliveries = deliveryRepository.findAllDeadLettersWithRelations(DeliveryStatus.DEAD_LETTER);
+        return deliveries.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public void replayDelivery(String id) {
+        Delivery delivery = deliveryRepository.findDeadLettersByIdWithRelations(
+                DeliveryStatus.DEAD_LETTER, id);
+
+        if (delivery == null) {
+            throw new RuntimeException("Invalid delivery id: " + id);
+        }
+
+        delivery.setAttemptCount(0);
+        delivery.setDeliveryStatus(DeliveryStatus.QUEUED);
+        delivery.setNextRetryAt(null);
+        deliveryRepository.save(delivery);
+
+        redisTemplate.opsForList()
+                .leftPush(DELIVERY_QUEUE, delivery.getId().toString());
+    }
+
+    @Override
+    public void dismissDeliveryById(String id) {
+        Delivery delivery = deliveryRepository.findDeadLettersByIdWithRelations(
+                DeliveryStatus.DEAD_LETTER, id);
+
+        if (delivery == null) {
+            throw new RuntimeException("Invalid delivery id: " + id);
+        }
+
+        delivery.setDeliveryStatus(DeliveryStatus.DISMISSED);
+        deliveryRepository.save(delivery);
+    }
+
 
     private DeliveryResponse toResponse(Delivery delivery) {
 
